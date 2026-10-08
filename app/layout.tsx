@@ -1,15 +1,30 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Noto_Sans_Thai, Sarabun } from "next/font/google";
 import "./globals.css";
+import { AppNavbar } from "@/components/AppNavbar";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const notoSansThai = Noto_Sans_Thai({
+  weight: ["300", "400", "500", "600", "700"],
+  subsets: ["latin", "latin-ext", "thai"],
+  variable: "--font-noto-sans-thai",
+});
+const geist = Geist({
+  variable: "--font-geist",
   subsets: ["latin"],
+  display: "swap",
+});
+
+const sarabun = Sarabun({
+  variable: "--font-sarabun-family",
+  subsets: ["thai", "latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -20,10 +35,15 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      lang="th"
+      className={`${geist.variable} ${geistMono.variable} ${notoSansThai.variable} ${sarabun.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-screen bg-background text-foreground">
+        <div className="mx-auto flex min-h-screen w-full flex-col px-4 py-1.5 sm:px-6 lg:px-7">
+          <AppNavbar />
+          <main className="flex flex-1 flex-col py-8">{children}</main>
+        </div>
+      </body>
     </html>
   );
 }
