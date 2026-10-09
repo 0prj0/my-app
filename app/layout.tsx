@@ -40,6 +40,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-screen bg-background text-foreground">
         <div className="mx-auto flex min-h-screen w-full flex-col px-4 py-1.5 sm:px-6 lg:px-7">
+          
           <AppNavbar />
           <main className="flex flex-1 flex-col py-8">{children}</main>
         </div>
