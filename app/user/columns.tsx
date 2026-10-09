@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { createColumnHelper } from "@tanstack/react-table";
 import type { DataTableFeatures } from "@/components/ui/data-table-features";
 import type { UserList } from "@/components/types/user";
@@ -20,7 +21,7 @@ export const columns = columnHelper.columns([
     header: "รหัสผู้ใช้งาน",
     size: 136,
     cell: ({ row }) => (
-      <span className="text-sm text-link underline underline-offset-2">US-{String(25100000 + row.original.id)}</span>
+      <Link href={`/user/${row.original.id}`} className="rounded text-sm text-link underline underline-offset-2 hover:text-link/80 focus-visible:outline-2 focus-visible:outline-ring">US-{String(25100000 + row.original.id)}</Link>
     ),
   }),
   columnHelper.accessor("name", { header: "ชื่อผู้ใช้งาน", size: 243 }),
