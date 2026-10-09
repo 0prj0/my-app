@@ -24,3 +24,4 @@ export const MOCK_DATA: UserList[] = Array.from({ length: 24 }, (_, index) => ({
   role: "admin",
   status: true,
 }));
+

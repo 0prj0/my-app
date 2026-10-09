@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { UserCreateForm } from "@/components/UserCreateForm";
+import { Suspense } from "react";
 
 export const metadata: Metadata = { title: "เพิ่มผู้ใช้งาน | Backoffice" };
 
@@ -12,7 +13,8 @@ export default function NewUserPage() {
         <ArrowLeft className="size-4" /> ย้อนกลับ
       </Link>
       <h1 className="mt-6 text-2xl font-bold leading-9 sm:text-[32px]">เพิ่มผู้ใช้งาน</h1>
-      <UserCreateForm />
+    <UserCreateForm />
+  
     </div>
   );
 }

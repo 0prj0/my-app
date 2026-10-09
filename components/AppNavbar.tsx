@@ -1,13 +1,13 @@
 "use client";
 
 import { ChevronDown, LogOut } from "lucide-react";
-import { usePathname } from "next/navigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { usePathname } from "next/navigation";
 
 const PAGE_TITLES: Record<string, string> = {
   "/": "หน้าหลัก",
@@ -70,7 +70,9 @@ function UserMenu() {
 
 export function AppNavbar({ title }: Readonly<AppNavbarProps>) {
   const pathname = usePathname();
-  const pageTitle = title ?? getPageTitle(pathname || "/");
+  const name = pathname.split("/")[0]
+  console.log('pathname: ',pathname)
+  const pageTitle = title ?? getPageTitle(name || "/");
 
   return (
     <div className="sticky top-1.5 z-20">
