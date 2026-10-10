@@ -124,6 +124,8 @@ export function UserCreateForm({ user }: { user?: UserList }) {
       if (user) {
         await updateUser(user.id, {
           ...profile,
+          email: values.email.trim(),
+          role: user.role,
           password: values.password,
           confirmPassword: values.confirmPassword,
         });
@@ -208,7 +210,6 @@ export function UserCreateForm({ user }: { user?: UserList }) {
             <Input
               id="email"
               type="email"
-              readOnly={!!user}
               //defaultValue={user?.email ?? ""}
               placeholder="กรอกอีเมล"
               autoComplete="email"
