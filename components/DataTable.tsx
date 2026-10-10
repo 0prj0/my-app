@@ -9,10 +9,11 @@ import { features, type DataTableFeatures } from "./ui/data-table-features";
 interface DataTableProps<TData extends RowData> {
   columns: ColumnDef<DataTableFeatures, TData>[];
   data: TData[];
+  serverPagination?: boolean;
 }
 
-export function DataTable<TData extends RowData>({ columns, data }: DataTableProps<TData>) {
-  const table = useTable({ features, data, columns });
+export function DataTable<TData extends RowData>({ columns, data, serverPagination = false }: DataTableProps<TData>) {
+  const table = useTable({ features, data, columns, manualPagination: serverPagination });
   const { pageIndex, pageSize } = table.state.pagination;
   const pageCount = table.getPageCount();
   const leafColumns = table.getAllLeafColumns();
@@ -49,7 +50,7 @@ export function DataTable<TData extends RowData>({ columns, data }: DataTablePro
           )}
         </TableBody>
       </Table>
-      <div className="flex flex-wrap items-center justify-between gap-4 min-h-16 border-t border-border px-4 py-3 text-sm">
+      {!serverPagination && <div className="flex flex-wrap items-center justify-between gap-4 min-h-16 border-t border-border px-4 py-3 text-sm">
         <p aria-live="polite">{table.getRowCount()} รายการ</p>
         <div className="flex flex-wrap items-center gap-3 text-text-secondary">
           <label htmlFor="user-page-size">แสดงแถว</label>
@@ -62,7 +63,7 @@ export function DataTable<TData extends RowData>({ columns, data }: DataTablePro
           <Button variant="ghost" size="icon" className="size-6 text-text-secondary disabled:text-input disabled:opacity-100 [&_svg]:size-4" aria-label="หน้าถัดไป" disabled={!table.getCanNextPage()} onClick={() => table.nextPage()}><ChevronRight /></Button>
           <Button variant="ghost" size="icon" className="size-6 text-text-secondary disabled:text-input disabled:opacity-100 [&_svg]:size-4" aria-label="หน้าสุดท้าย" disabled={!table.getCanNextPage()} onClick={() => table.lastPage()}><ChevronLast /></Button>
         </div>
-      </div>
+      </div>}
     </div>
   );
 }

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { UserCreateForm } from "@/components/UserCreateForm";
-import { Suspense } from "react";
 
 export const metadata: Metadata = { title: "เพิ่มผู้ใช้งาน | Backoffice" };
 
