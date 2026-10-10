@@ -1,13 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState, type ComponentProps } from "react";
+import { useRouter } from "next/navigation";
+import { useSWRConfig } from "swr";
 import { useForm, Controller } from "react-hook-form";
 import { ChevronDown, Eye, EyeOff } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type { UserList, UserRole } from "@/components/types/user";
+import { createUser, updateUser, getApiError, isUserListKey, sessionKey } from "@/lib/user-api";
 
 function FieldLabel({
   htmlFor,
@@ -33,17 +36,19 @@ function PasswordField({
   id,
   label,
   placeholder,
+  ...inputProps
 }: {
   id: string;
   label: string;
   placeholder: string;
-}) {
+} & ComponentProps<typeof Input>) {
   const [visible, setVisible] = useState(false);
   return (
     <div className="space-y-1.5">
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
       <div className="relative">
         <Input
+          {...inputProps}
           id={id}
           name={id}
           type={visible ? "text" : "password"}
@@ -66,17 +71,19 @@ function PasswordField({
   );
 }
 
-type UserFormValues = UserList & {
-  password?: string;
+type UserFormValues = Pick<UserList, "firstName" | "lastName" | "email" | "company"> & {
+  role: UserRole;
+  password: string;
   confirmPassword: string;
 };
 
 export function UserCreateForm({ user }: { user?: UserList }) {
-
+  const router = useRouter();
+  const { mutate } = useSWRConfig();
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const {
     control,
     handleSubmit,
-    watch,
     formState: { isSubmitting },
     reset
   } = useForm<UserFormValues>({
@@ -85,31 +92,51 @@ export function UserCreateForm({ user }: { user?: UserList }) {
       lastName: user?.lastName ?? "",
       email: user?.email ?? "",
       company: user?.company ?? "",
-      role: user?.role ?? undefined,
+      role: user?.role ?? "user",
       password: "",
       confirmPassword: "",
     },
   });
 
-  // const value = watch();
-  // console.log(value);
-
-  const password = watch("password");
-  const onSubmit = (data: UserFormValues) => console.log('submit', data);
-  // const onReset = (reset({
-  //   firstName: "",
-  //     lastName: "",
-  //     email: "",
-  //     company: "",
-  //     role: "user",
-  //     password: "",
-  //     confirmPassword: ""
-  // }))
-
-  // console.log(user,'user')
+  const onSubmit = async (values: UserFormValues) => {
+    setSubmitError(null);
+    if (!user && values.password !== values.confirmPassword) {
+      setSubmitError("รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน");
+      return;
+    }
+    const profile = {
+      firstName: values.firstName.trim(),
+      lastName: values.lastName.trim(),
+      company: values.company.trim(),
+    };
+    if (!profile.company || (!profile.firstName && !profile.lastName)) {
+      setSubmitError("กรุณากรอกชื่อผู้ใช้และบริษัท");
+      return;
+    }
+    try {
+      if (user) {
+        await updateUser(user.id, profile);
+      } else {
+        await createUser({ ...values, ...profile, email: values.email.trim() });
+      }
+    } catch (error) {
+      setSubmitError(getApiError(error));
+      return;
+    }
+    // Refresh errors must not make a successful write look like a failed submission.
+    const refreshes: Promise<unknown>[] = [mutate(isUserListKey)];
+    if (user) {
+      refreshes.push(mutate(`/users/${encodeURIComponent(user.id)}`), mutate(sessionKey));
+    }
+    await Promise.allSettled(refreshes);
+    router.push("/user");
+  };
 
   return (
     <form className="mt-11" onSubmit={handleSubmit(onSubmit)}>
+      {submitError && <p role="alert" className="mb-4 text-error">{submitError}</p>}
+      {user && <p className="mb-4">แก้ไขชื่อ นามสกุล และบริษัทได้</p>}
+      <fieldset disabled={isSubmitting}>
       <section aria-labelledby="user-details-title" className="space-y-6">
         <h2 id="user-details-title" className="text-lg font-bold">
           ข้อมูลผู้ใช้งาน
@@ -170,6 +197,7 @@ export function UserCreateForm({ user }: { user?: UserList }) {
             <Input
               id="email"
               type="email"
+              readOnly={!!user}
               //defaultValue={user?.email ?? ""}
               placeholder="กรอกอีเมล"
               autoComplete="email"
@@ -207,6 +235,7 @@ export function UserCreateForm({ user }: { user?: UserList }) {
             <div className="relative">
               <select
                 id="role"
+                disabled={!!user}
                 {...field}
                 //defaultValue={user?.role ?? ""}
                 required
@@ -227,7 +256,7 @@ export function UserCreateForm({ user }: { user?: UserList }) {
             )}
           />
 
-          <Controller
+          {!user && <Controller
             name="password"
             control={control}
             render={({ field }) => (
@@ -238,9 +267,9 @@ export function UserCreateForm({ user }: { user?: UserList }) {
             {...field}
           />
             )}
-          />
+          />}
 
-          <Controller
+          {!user && <Controller
             name="confirmPassword"
             control={control}
             render={({ field }) => (
@@ -251,7 +280,7 @@ export function UserCreateForm({ user }: { user?: UserList }) {
             {...field}
           />
             )}
-          />
+          />}
         </div>
       </section>
 
@@ -268,8 +297,7 @@ export function UserCreateForm({ user }: { user?: UserList }) {
 
         <Button
           type="button"
-          onClick={() => reset()}
-          title="ยังไม่เปิดใช้งานการบันทึก"
+          onClick={() => { reset(); setSubmitError(null); }}
           className="h-9 min-w-24 px-4 font-semibold disabled:opacity-100"
         >
           รีเซ็ต
@@ -277,12 +305,13 @@ export function UserCreateForm({ user }: { user?: UserList }) {
 
         <Button
           type="submit"
-          title="ยังไม่เปิดใช้งานการบันทึก"
+          disabled={isSubmitting}
           className="h-9 min-w-24 px-4 font-semibold disabled:opacity-100"
         >
-          {user ? "แก้ไข" : "เพิ่มผู้ใช้งาน"}
+          {isSubmitting ? "กำลังบันทึก..." : user ? "แก้ไข" : "เพิ่มผู้ใช้งาน"}
         </Button>
       </div>
+      </fieldset>
     </form>
   );
 }

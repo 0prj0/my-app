@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Geist, Geist_Mono, Noto_Sans_Thai, Sarabun } from "next/font/google";
 import "./globals.css";
 import { AppNavbar } from "@/components/AppNavbar";
+import { SWRProvider } from "@/app/provider/SWRProvider";
 
 const notoSansThai = Noto_Sans_Thai({
   weight: ["300", "400", "500", "600", "700"],
@@ -39,11 +41,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geist.variable} ${geistMono.variable} ${notoSansThai.variable} ${sarabun.variable} h-full antialiased`}
     >
       <body className="min-h-screen bg-background text-foreground">
+        <SWRProvider>
         <div className="mx-auto flex min-h-screen w-full flex-col px-4 py-1.5 sm:px-6 lg:px-7">
           
-          <AppNavbar />
+          <Suspense fallback={null}>
+            <AppNavbar />
+          </Suspense>
           <main className="flex flex-1 flex-col py-8">{children}</main>
         </div>
+        </SWRProvider>
       </body>
     </html>
   );
