@@ -15,9 +15,11 @@ import { createUser, updateUser, getApiError, isUserListKey, sessionKey } from "
 function FieldLabel({
   htmlFor,
   children,
+  required = true,
 }: {
   htmlFor: string;
   children: React.ReactNode;
+  required?: boolean;
 }) {
   return (
     <label
@@ -25,9 +27,9 @@ function FieldLabel({
       className="text-sm font-semibold text-text-secondary"
     >
       {children}
-      <span className="ml-1 text-error" aria-hidden="true">
+      {required && <span className="ml-1 text-error" aria-hidden="true">
         *
-      </span>
+      </span>}
     </label>
   );
 }
@@ -36,6 +38,7 @@ function PasswordField({
   id,
   label,
   placeholder,
+  required = true,
   ...inputProps
 }: {
   id: string;
@@ -45,7 +48,7 @@ function PasswordField({
   const [visible, setVisible] = useState(false);
   return (
     <div className="space-y-1.5">
-      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+      <FieldLabel htmlFor={id} required={required}>{label}</FieldLabel>
       <div className="relative">
         <Input
           {...inputProps}
@@ -54,7 +57,7 @@ function PasswordField({
           type={visible ? "text" : "password"}
           placeholder={placeholder}
           autoComplete="new-password"
-          required
+          required={required}
           className="pr-11"
         />
         <button
@@ -100,7 +103,11 @@ export function UserCreateForm({ user }: { user?: UserList }) {
 
   const onSubmit = async (values: UserFormValues) => {
     setSubmitError(null);
-    if (!user && values.password !== values.confirmPassword) {
+    if (!values.password || !values.confirmPassword) {
+      setSubmitError("กรุณากรอกรหัสผ่านและยืนยันรหัสผ่าน");
+      return;
+    }
+    if (values.password !== values.confirmPassword) {
       setSubmitError("รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน");
       return;
     }
@@ -115,7 +122,11 @@ export function UserCreateForm({ user }: { user?: UserList }) {
     }
     try {
       if (user) {
-        await updateUser(user.id, profile);
+        await updateUser(user.id, {
+          ...profile,
+          password: values.password,
+          confirmPassword: values.confirmPassword,
+        });
       } else {
         await createUser({ ...values, ...profile, email: values.email.trim() });
       }
@@ -135,7 +146,7 @@ export function UserCreateForm({ user }: { user?: UserList }) {
   return (
     <form className="mt-11" onSubmit={handleSubmit(onSubmit)}>
       {submitError && <p role="alert" className="mb-4 text-error">{submitError}</p>}
-      {user && <p className="mb-4">แก้ไขชื่อ นามสกุล และบริษัทได้</p>}
+      {user && <p className="mb-4">กรุณากรอกรหัสผ่านและยืนยันรหัสผ่านเพื่อบันทึกการแก้ไข</p>}
       <fieldset disabled={isSubmitting}>
       <section aria-labelledby="user-details-title" className="space-y-6">
         <h2 id="user-details-title" className="text-lg font-bold">
@@ -256,31 +267,33 @@ export function UserCreateForm({ user }: { user?: UserList }) {
             )}
           />
 
-          {!user && <Controller
+          <Controller
             name="password"
             control={control}
             render={({ field }) => (
               <PasswordField
             id="password"
             label="รหัสผ่าน"
+            required
             placeholder={user ? "***************" : "กรอกรหัสผ่าน"}
             {...field}
           />
             )}
-          />}
+          />
 
-          {!user && <Controller
+          <Controller
             name="confirmPassword"
             control={control}
             render={({ field }) => (
               <PasswordField
             id="confirmPassword"
             label="ยืนยันรหัสผ่าน"
+            required
             placeholder={user ? "***************" : "ยืนยันรหัสผ่าน"}
             {...field}
           />
             )}
-          />}
+          />
         </div>
       </section>
 
