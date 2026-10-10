@@ -14,7 +14,7 @@ export type CreateUserInput = {
   role: UserRole;
 };
 
-export type UpdateUserInput = Pick<CreateUserInput, "firstName" | "lastName" | "company" | "password" | "confirmPassword">;
+export type UpdateUserInput = CreateUserInput;
 
 export const createUser = (input: CreateUserInput) => api.post("/users/", input);
 export const updateUser = (id: string, input: UpdateUserInput) =>
