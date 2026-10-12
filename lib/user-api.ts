@@ -4,6 +4,21 @@ import type { UserRole } from "@/components/types/user";
 
 export const sessionKey = "http://localhost:3001/api/auth/get-session";
 
+export type Session = {
+  session: { id: string; expiresAt: string };
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    company?: string | null;
+    role: string;
+    status?: boolean;
+    isActive?: boolean;
+  };
+};
+
+export const signOut = () => api.post("/auth/sign-out");
+
 export type CreateUserInput = {
   email: string;
   password: string;
