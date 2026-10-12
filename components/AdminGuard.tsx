@@ -3,11 +3,7 @@
 import type { ReactNode } from "react";
 import { useFetch } from "@/lib/utils/use-fetch";
 import { getApiError, sessionKey } from "@/lib/user-api";
-
-type Session = {
-  session: { id: string; expiresAt: string };
-  user: { id: string; role: string; status?: boolean; isActive?: boolean };
-};
+import type { Session } from "@/lib/user-api";
 
 export function AdminGuard({ children }: { children: ReactNode }) {
   const { data, error, isLoading, isValidating, mutate } = useFetch<Session | null>(sessionKey, {
